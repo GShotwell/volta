@@ -19,5 +19,6 @@ Each participant should bring their own laptop, ideally with R and RStudio alrea
 R is freely available here: http://mirror.its.dal.ca/cran/
 
 RStudio is a free IDE for R, I would recommend the preview version: http://www.rstudio.com/products/rstudio/download/preview/
+
 Participants are asked to bring a dataset that they were interested in working with. This could be something related to work, or any other subject matter. There will be datasets available in the workshop, but it is usually more meaningful if they are working with their own materials.
 

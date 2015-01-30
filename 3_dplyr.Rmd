@@ -1,0 +1,185 @@
+---
+title: "30 Minute dplyr intro"
+output: html_document
+---
+
+dplyr is the grammar of data maniuplation developed by Hadley Wickham. The basic idea is to accomplish %80 of the data analysis work that you might do usuing a few simple verbs, and trust that there are solutions somewhere in the R ecosystem for the remaining tasks. The key parts of dplyr are written in C++, so it is very fast. 
+
+The data.table package is another excellent R package for performant data manipulation. It's a bit quicker, but the syntax is somewhat counterintuitive, so we're learnign dplyr!
+
+```{r}
+library("dplyr") # R packages are equivalent to libraries in other languages, 
+               # but you call them with the "library" funciton for some reason. 
+library("nycflights13") # for the example data
+```
+
+There are five basic verbs in dplyr:
+filter   : subset rows
+select   : subset collumns
+arrange  : reorder rows
+mutate   : many-to-many transformations
+summarise: many-to-one transformations
+
+And a grouping command. We'll go through these one at a time, and then show how they work together using the awesome power of the %>% operator. 
+
+Filter subsets a data frame based on logical tests. We'll be using the NYC flights data which is about 300,000 records. Not a huge dataset, but big enough to slow base R down a bit. 
+
+```{r, echo=FALSE}
+flights<- flights
+dim(flights)
+head(flights)
+
+base_flights<- flights[ flights$month == 1, ]
+dplyr_flights<- filter(flights, month == 1)
+
+#multiple conditons are evaluated as & tests
+Jan_27 <- filter(flights, month == 1, day == 27)
+#you can add logical tests explicitly
+jan_or_march <- filter(flights, month == 1 | month == 3) 
+long_flights <- filter(flights, air_time > median(flights$air_time, na.rm = TRUE))
+rm(list = ls()) #clears local environment
+
+```
+
+All the dplyr verbs are simple and straightforward. They do one thing well, and can be easily combined with other things. Filter filters, that's it. Select allows you to subset a dataframe by column. 
+
+```{r Select}
+flights<- flights
+
+select(flights, air_time) #select a variable
+select(flights, -air_time) #drop a variable
+select(flights, dep_delay:flight) #select all variables between two variables with ':'
+select(flights, -(dep_delay:flight)) #drop those variables
+select(flights, air_time = tailnum) #select and rename
+```
+
+Select includes helper functions that allow you to select variables based on patterns. From the documentation: 
+
+- starts_with(x, ignore.case = TRUE): names starts with x
+- ends_with(x, ignore.case = TRUE): names ends in x
+- contains(x, ignore.case = TRUE): selects all variables whose name contains x
+- matches(x, ignore.case = TRUE): selects all variables whose name matches the regular
+expression x
+- num_range("x", 1:5, width = 2): selects all variables (numerically) from x01 to x05.
+- one_of("x", "y", "z"): selects variables provided in a character vector.
+- everything(): selects all variables.
+
+```{r}
+
+select(flights, starts_with("air"))
+select(flights, ends_with("time"))
+select(flights, one_of("dep_time", "air_time"))
+select(flights, contains("t"))
+
+```
+
+Arrange is an efficent way of reordring a dataset
+
+```{r}
+
+arrange(flights, distance)
+arrange(flights, desc(distance))
+arrange(flights, year, month, day)
+
+```
+
+
+Mutate provides many-to-many operations. Mutate adds a variable to a data frame, transmute keeps only the transformed variable. 
+```{r}
+
+mutate(flights, distance_km = distance * 1.6)
+mutate(flights, month = ifelse(month == 1,"Jan", month)) #works but ifelse is slow!
+transmute(flights, dis_deviation = distance - mean(distance))
+
+```
+
+Summarise is used for many-to-one functions, it works on ungrouped datasets, but is more useful when combined with grouping. 
+
+```{r}
+summarise(flights, mean(distance))
+summarise(flights, n())
+tally(flights) #shorthand for above. 
+
+```
+
+group_by() turns a dataset into a grouped dataset, which allows you to apply the dplyr verbs by group
+
+```{r}
+
+flights <- group_by(flights, carrier)
+flights
+
+filter(flights, distance >  median(distance)) #the median distance is now group-wise.
+transmute(flights, dis_dev = distance - mean(distance)) #performed group-wise
+arrange(flights, year) #each plane gets reordered
+summarise(flights, median_distance = median(distance),
+          total_distance = sum(distance))
+
+rm(flights)
+```
+
+The dplyr verbs are useful on their own, but their real power is that they can be grouped together easily. Since each verb takes a dataframe and returns a dataframe, you can chain them together easily to accomplish complicated data manimuplation tasks without creating intermediary objects. 
+
+This is done using the "%>%" operator (the 'then' operator) which takes an object on the left and puts it into the function on the right. So "x %>% f(y)" is equivalent to "f(x, y)". The Rstudio hotkey for this operator is "shift+alt+.".
+
+```{r}
+
+summarise(
+  group_by(flights, carrier),
+  median_distance = median(distance),
+          total_distance = sum(distance))
+
+flights %>%
+  group_by(carrier) %>%
+  summarise( median_distance = median(distance),
+             total_distance = sum(distance))
+
+#This can be used for more complicated operations
+
+flights %>%
+  group_by(year, month, day) %>%
+  select(arr_delay, dep_delay) %>%
+  summarise(
+    arr = mean(arr_delay, na.rm = TRUE),
+    dep = mean(dep_delay, na.rm = TRUE)) %>%
+  filter(arr > 30 | dep > 30) %>%
+  arrange(arr) %>%
+  mutate(dep_hour = dep / 60,
+         arr_hour = arr / 60)
+
+
+```
+
+dplyr also has efficient join operations. It has support for left, semi, and anti joins. 
+
+```{r}
+rm(airlines)
+flight_airline<- left_join(flights, airlines)
+
+names(airlines)[1] <- "Carrier"
+flight_airline2<- left_join(flights, airlines, by = c("carrier" = "Carrier"))
+
+```
+
+The last important dplyr verb is do(). Do allows you to perform arbitrary operations on a data frame by writting your own function which is applied in the same manner as the other dplyr verbs. Since your function will usually be written in R, do() is quite a lot slower than the other verbs, but is useful for accomplishing the data manipulation tasks which can't be accomplished using the other verbs. A good example from the dplyr documentation is applying a linear model to subgroups.
+
+```{r}
+
+carriers <- group_by(flights, carrier)
+group_size(carriers)
+mods <- do(carriers, mod = lm(arr_delay ~ dep_time, data = .))
+mods %>% do(as.data.frame(coef(.$mod)))
+mods %>% summarise(rsq = summary(mod)$r.squared)
+
+
+
+```
+
+
+dplyr also allows you to run commands on a database. This can be done either on one machine, if your data does not fit in memory, or to a remote database.
+http://cran.r-project.org/web/packages/dplyr/vignettes/databases.html
+
+
+
+
+

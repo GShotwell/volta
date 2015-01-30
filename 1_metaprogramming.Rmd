@@ -1,0 +1,86 @@
+---
+title: "Why can't I do this with Python"
+output: html_document
+---
+
+Everything that exists is an object, everything that happens is a function. 
+
+```{r}
+
+   1 + 1
+
+g<- function(x, y){
+  sum(x, y)
+}
+
+g(1,1)
+
+'+'(1, 1)
+
+```
+
+R is a lexically scoped language, which means that it will first look in the most specific environment for an object or function and then look to more general environment if it can't find the object. 
+
+```{r}
+
+f <- function(x){
+  x + y
+}
+
+f(4)
+
+
+g <- function(x){
+  y <- 5
+  x + y
+}
+y
+g(4)
+
+y<- 3
+y
+f(4)
+g(4)
+```
+
+
+Lexical scoping combined with functional programming lets you create amazingly broken code:
+
+```{r}
+
+'+' <- function(x, y){
+  x - y
+  cat("You...Shall not...Add!")
+}
+
+1 + 1
+
+rm('+')
+T
+T & T
+T <- FALSE
+T & T
+
+rm(list = ls())
+
+```
+
+Non standard evaluation lets you program on the name of an object in addition to its value. This is very useful in certain contexts, but you lose referential transparency. 
+
+```{r}
+namer <- function(a){
+  name <- substitute(a)
+  print(paste( "I sure love", name))
+  a + nchar(name)
+}
+
+carbon_nano_tubes <- 1:10
+namer(carbon_nano_tubes)
+
+hexane<- 1:10
+namer(hexane)
+
+```
+
+
+

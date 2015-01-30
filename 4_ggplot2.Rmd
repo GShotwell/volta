@@ -1,0 +1,88 @@
+ggplot() is the basic function of ggplot2, it sets out the data to use, and the general mapping that the plot will express. 
+
+```{r, echo=FALSE}
+rm(list = ls())
+library("ggplot2")
+
+dim(diamonds)
+head(diamonds)
+
+d <- ggplot(diamonds, aes(x = carat, y = price))
+#since we didn't supply any layers, the plot is stored as a ggplot object
+d + geom_point()
+d + geom_point(aes(colour = carat))
+d + geom_point(aes(colour = clarity)) 
+
+#looks like there's a log-log relationship
+d + geom_point(aes(colour = carat))+
+  scale_x_log10()
+
+d + geom_point(aes(colour = carat))+
+  scale_x_log10()+
+  scale_y_log10()
+
+#Everything can be changed, for instance you can fiddle with transparency
+
+d + geom_point(aes(colour = carat), alpha = 0.1)+
+  scale_x_log10()+
+  scale_y_log10()
+
+#Or add a smoother
+
+d + geom_point(aes(colour = carat), alpha = 0.1)+
+  scale_x_log10()+
+  scale_y_log10()
+
+
+```
+
+ggplot2 has some built in statistical representations. Theses are basically a combination of a mathmatical operation, and an aesthetic mapping. For instance, a histogram is a combination of a statistical binning operation, and a bar chart. 
+
+```{r}
+
+p<- ggplot(diamonds, aes(x = price))
+p + geom_histogram()
+p + geom_histogram(binwidth = 30)
+p + geom_density() #same mapping (price to x, count to y, but with a density curve)
+
+#You can do 2d histograms as well
+ggplot(diamonds, aes(x = price, y = carat)) + geom_bin2d(binwidth = c(100, 0.1))
+
+#or add a smoother
+
+ggplot(mtcars, aes(x = hp, y = mpg))+
+  geom_point()+
+  stat_smooth()
+
+```
+The basic problem with plots is how to display dimensionality. It's easy to visualize one or two dimensional relationships, but as the relationship gets more complex it's hard to picture it. Ggplot has a few tools for visualizing higher dimensional data. Some of these are simple like mapping the point size or colour to a variable. 
+
+```{r}
+
+a<- ggplot(mtcars, aes(x = mpg, y = hp))
+a + geom_point(aes(colour = cyl))
+a + geom_point(aes(size = cyl))
+
+```
+
+Faceting allows you to break up a plot based on a categorical variable, to show anohter bit of dimensionality. 
+
+```{r}
+
+ggplot(diamonds, aes(x = price))+ geom_histogram()+
+  facet_wrap(~color, scales = "free_x")
+
+```
+Every aspect of the plot can be customized. A good way to package customizations is through the "theme" functionality. This allows you to basically set the default parameters of a plot. For an example of common things to change about a ggplot2 theme, see this shiny app: https://bchartoff.shinyapps.io/ggShinyApp/
+
+```{r}
+a<- ggplot(mtcars, aes(x = mpg, y = hp))
+a + geom_point(aes(size = cyl))+ 
+  theme_bw()
+a + geom_point(aes(size = cyl))+
+  theme(axis.ticks = element_line(size = 3, colour = "purple"))
+
+```
+
+http://shinyapps.stat.ubc.ca/r-graph-catalog/ is a great tool for exploring ggplot2 graphs and code. 
+

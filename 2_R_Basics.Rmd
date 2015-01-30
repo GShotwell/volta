@@ -1,0 +1,213 @@
+---
+title: "R Basics"
+output: html_document
+---
+
+Objects are assigned values using the assignment operator. You can use "<-", "=", or "->" to assign values to objects, but "<-" is the preferred method. 
+
+The basic data structure in R is a vector. Vectors are similar to arrays in other languages, but require uniform data. Vectors are created using the c() function.  
+
+```{r}
+
+numeric   <- c(1,2,3, 4)
+numeric2  <- 1:4
+char <- c("Tom", "Dick", "Harry")
+logical   <- numeric > 2
+not_allowed<- c(1:50, "Fabrice") #Numeric componetnts coerced to character. 
+
+```
+
+There are no scalars in R, if you assign an object only one number it is a vector of length one. 
+```{r}
+x <- 1
+x
+is.vector(x)
+
+```
+
+Matrixes are created by tacking together two vectors using cbind() or rbind()
+```{r}
+mtrx <- cbind(numeric, numeric2)
+mtrx
+
+```
+
+Dataframes are basically matrixes with special properties, they are by far the most common menthod of working with data in R, and while a little slower than a matrix, are much more convenient.
+```{r}
+
+df <- data.frame(numeric, numeric2, c("a", "b", "c", "d"))
+df
+View(df)
+mtcars<- mtcars #A built-in R dataset
+mtcars
+```
+
+
+
+
+Elements of a vector or dataframe are accessed using square braces, a process known as subsetting. Indexes start at 1, not 0, which needs to be repeated because it causes so many problems INDEXES START AT 1 NOT 0!
+
+```{r}
+char
+char[1:2]
+char[c(1,1,1,1,3)]
+char[3:1]
+char[0]
+char[0:3] #should probably throw an error, but doesn't!
+
+#Data frames are accessed using [row number, column number]
+mtcars[1, 5]
+mtcars[1:3, 2:5]
+
+#You can also subset by passing a logical or character vector to the [] operator. 
+
+logic <- mtcars$cyl > 4
+logic
+mtcars[ logic, ]
+mtcars[ , "cyl"]
+mtcars[mtcars$cyl > 4, ]
+
+
+```
+
+Since accessing variables is so common, $ is used as shorthand for a variable name. mtcars$cyl, is the same as mtcars[, "cyl"].
+
+All of your favourite mathmatical and logical operators exist in R:
+
+```{r}
+x<- 1:5
+x
+x > 2
+x < 2
+x >= 2
+x == 2 #two '=', not three. 
+x != 2
+!(x > 2)
+
+2 %in% x #tests if left hand side is present in right hand side. 
+
+TRUE & FALSE
+TRUE | FALSE
+
+1 + 1
+1 - 1
+2 * 3
+4 / 2
+4 ^ 2
+5 %% 2 #modulus
+
+```
+
+For and While loops are executed in R, so are very slow. Nine times out of ten there is a vectorized solution to the problem you are trying to solve with a loop. Using that solution will speed up your code and also make it more readable. It's also easy to replace R loops with C++ loops using the RCpp package. 
+
+```{r}
+
+for(i in 1:5){
+  print(i)
+}
+
+#For loops iterates through each element of the vector. To change how the loop iterates,
+#change the vector. 
+
+for(i in c("a", "b", "c", "methuzelah")){
+  print(i)
+}
+
+for(i in seq(from = 0, to = 10, by = 2)){
+  print(i)
+}
+
+
+j<- 1
+while( j < 5){
+  print(j)
+  j<- j+1
+}
+
+```
+
+If/Else statements 
+
+```{r}
+
+for( i in 1:10){
+  if(i < 2){
+    print("Plato")
+  }else if(i < 6){
+    print("Hericlitus")
+  }else
+    print("Theracles")
+}
+
+x<- 1:10
+ifelse(x > 5, "big", "small")
+
+```
+
+The main flow control operators in R are the break and next commands
+
+```{r}
+
+for(i in 1:10){
+  if(i == 3){
+    next
+  }else if(i == 7){
+    break
+  }else
+    print(i)
+}
+```
+
+R is a mostly functional programming language, and behaves better if you treat it like one. Function definition looks a lot like Javascript. 
+
+```{r}
+
+doubler <- function(x){
+  x * 2
+}
+
+doubler(4)
+doubler(1:10)
+
+#use the equals sign to set default value of funcitons
+
+adder <- function(x, y = 23, text = "Nice Addition"){
+  print(x + y)
+  print(text)
+}
+
+adder(2)
+adder(2, y = 5, text = "Huzzah!")
+adder(2, 3, "Huzzah!")
+
+#closures are functions that return functions
+
+power <- function(x){
+  function(y){
+    y ^ x
+  }
+}
+
+square <- power(2)
+cube <- power(3)
+square(1:6)
+cube(1:5)
+```
+
+
+R has many wyas to read and write data. 
+
+```{r}
+
+write.csv(mtcars, "mtcars.csv")
+df<- read.csv("mtcars.csv")
+
+```
+
+
+
+
+
+
+
+

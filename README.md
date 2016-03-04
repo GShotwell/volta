@@ -6,11 +6,11 @@ Topics Covered
 
 - R Basics: “Why can’t I just do this in Python?”
 
-- dplyr: Fast, flexible data manipulation
+- dplyr: Functional data manipulation
 
-- ggplot2: A grammar of graphics
+- purrr: Type safe functional programming
 
-- shiny: Responsive web applications in R
+- May as well write a package!
 
 # Requirements
 

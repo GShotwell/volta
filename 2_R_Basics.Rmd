@@ -42,9 +42,6 @@ mtcars<- mtcars #A built-in R dataset
 mtcars
 ```
 
-
-
-
 Elements of a vector or dataframe are accessed using square braces, a process known as subsetting. Indexes start at 1, not 0, which needs to be repeated because it causes so many problems INDEXES START AT 1 NOT 0!
 
 ```{r}
@@ -97,6 +94,25 @@ TRUE | FALSE
 5 %% 2 #modulus
 
 ```
+
+But in reality there are no data frames, they are actually just lists with two qualities: 
+- Each element of the list is a vector
+- Each element is the same length
+
+List
+
+```{r}
+
+is.list(mtcars)
+
+L <- vector("list")
+L$df <- mtcars
+L$mpg_sum <- summary(mtcars$mpg)
+L$model <- lm(mpg ~ wt, data = mtcars)
+str(L)
+```
+
+
 
 For and While loops are executed in R, so are very slow. Nine times out of ten there is a vectorized solution to the problem you are trying to solve with a loop. Using that solution will speed up your code and also make it more readable. It's also easy to replace R loops with C++ loops using the RCpp package. 
 

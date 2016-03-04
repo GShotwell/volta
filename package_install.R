@@ -1,5 +1,4 @@
-packages<- c("ggplot2", "dplyr", "tidyr" "shiny", "nycflights13", "knitr")
+packages<- c("ggplot2", "dplyr", "tidyr", "nycflights13", "knitr",
+             "purrr", "devtools", "rio")
 
-for(i in packages){
-  install.packages(i)
-}
+install.packages(packages)

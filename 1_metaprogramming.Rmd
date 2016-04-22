@@ -9,7 +9,7 @@ Everything that exists is an object, everything that happens is a function.
 
    1 + 1
 
-g<- function(x, y){
+g <- function(x, y){
   sum(x, y)
 }
 
@@ -34,7 +34,9 @@ g <- function(x){
   y <- 5
   x + y
 }
+
 y
+
 g(4)
 
 y<- 3
@@ -61,7 +63,7 @@ T & T
 T <- FALSE
 T & T
 
-rm(list = ls())
+rm(T)
 
 ```
 

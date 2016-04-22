@@ -25,14 +25,15 @@ is.vector(x)
 
 ```
 
-Matrixes are created by tacking together two vectors using cbind() or rbind()
+Matrixes are basically vectors with special length requirments (they need to be rectamngular)
 ```{r}
 mtrx <- cbind(numeric, numeric2)
 mtrx
 
 ```
 
-Dataframes are basically matrixes with special properties, they are by far the most common menthod of working with data in R, and while a little slower than a matrix, are much more convenient.
+Dataframes are lists which look like matrixes, they are by far the most common menthod of working with data in R.
+
 ```{r}
 
 df <- data.frame(numeric, numeric2, c("a", "b", "c", "d"))
@@ -72,7 +73,7 @@ Since accessing variables is so common, $ is used as shorthand for a variable na
 All of your favourite mathmatical and logical operators exist in R:
 
 ```{r}
-x<- 1:5
+x <- 1:5
 x
 x > 2
 x < 2
@@ -114,7 +115,7 @@ str(L)
 
 
 
-For and While loops are executed in R, so are very slow. Nine times out of ten there is a vectorized solution to the problem you are trying to solve with a loop. Using that solution will speed up your code and also make it more readable. It's also easy to replace R loops with C++ loops using the RCpp package. 
+For and While loops are executed in R, so can be very slow. Nine times out of ten there is a vectorized solution to the problem you are trying to solve with a loop. Using that solution will speed up your code and also make it more readable. It's also easy to replace R loops with C++ loops using the RCpp package. 
 
 ```{r}
 
@@ -174,7 +175,7 @@ for(i in 1:10){
 }
 ```
 
-R is a mostly functional programming language, and behaves better if you treat it like one. Function definition looks a lot like Javascript. 
+R is a functional programming language, and behaves better if you treat it like one. Function definition looks a lot like Javascript. 
 
 ```{r}
 
@@ -209,21 +210,6 @@ cube <- power(3)
 square(1:6)
 cube(1:5)
 ```
-
-
-R has many wyas to read and write data. 
-
-```{r}
-
-write.csv(mtcars, "mtcars.csv")
-df<- read.csv("mtcars.csv")
-
-```
-
-
-
-
-
 
 
 

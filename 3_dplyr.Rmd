@@ -120,7 +120,7 @@ rm(flights)
 
 The dplyr verbs are useful on their own, but their real power is that they can be grouped together easily. Since each verb takes a dataframe and returns a dataframe, you can chain them together easily to accomplish complicated data manimuplation tasks without creating intermediary objects. 
 
-This is done using the "%>%" operator (the 'then' operator) which takes an object on the left and puts it into the function on the right. So "x %>% f(y)" is equivalent to "f(x, y)". The Rstudio hotkey for this operator is "shift+alt+.".
+This is done using the "%>%" operator (the 'then' operator) which takes an object on the left and puts it into the function on the right. So "x %>% f(y)" is equivalent to "f(x, y)". The Rstudio hotkey for this operator is "shift+ctrl+ m".
 
 ```{r}
 
@@ -150,7 +150,7 @@ flights %>%
 
 ```
 
-dplyr also has efficient join operations. It has support for left, semi, and anti joins. 
+dplyr also has efficient join operations. 
 
 ```{r}
 rm(airlines)

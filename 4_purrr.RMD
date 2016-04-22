@@ -1,0 +1,218 @@
+---
+title: "4_purrr"
+author: "Gordon Shotwell"
+date: "April 20, 2016"
+output: html_document
+---
+
+Pure functions are functions who are constrained in how they can communicate with the world. R funcitons can use something called lexical scope to look for information which is not contained within its local function scope. For instance: 
+
+```{r}
+
+y <- 23
+
+adder <- function(x){
+  x + y
+}
+
+adder(1)
+
+```
+
+Even though the variable 'y' isn't included in the function call, R will look up one level to find the variable in the parent environment. This is called an impure function, a function which looks outside of its scope to find out what it needs to know to accomplish its task. Another version is one which produces side effects, for instance saving a plot. 
+
+Impure functions can create fragile code because they depend on the particularies of a given environment. This makes them hard to transport to new script. For instance if we change the name of the variable to "Tulsa" the adder function won't work: 
+```{r}
+rm(y)
+Tulsa <- 23
+
+adder(1)
+
+```
+
+Whenever possible, use pure functions which only communicate with the rest of the world through their inputs and outputs. In this case you would do this:
+
+```{r}
+
+adder <- function(x, y = 23){
+  x + y
+}
+
+adder(1)
+
+```
+
+
+Writing pure functions makes your code easy to reason about, test, and transport. But it often makes it difficult to iterate over things. For instance let's say we want to calculate a special statistic for each column of a dataset:
+
+```{r}
+
+mean_plus <- function(v){
+  
+  mean(v) + 1.732* sd(v)
+  
+}
+
+mean_plus(1:50)
+
+```
+
+
+A natural way to do this is to use a for loop: 
+
+```{r}
+
+out <- vector(length = ncol(mtcars))
+
+for(i in 1:11){
+  out[i] <- mean_plus(mtcars[, i])
+  cat(i)
+}
+
+out
+
+```
+
+While the `mean_plus()` function is pure, the way we're iterating it isn't. The for loop needs to change the value of "i" and "out" in the global environment as it runs. There's nothing wrong with this approach, but there's a better way in R. The `map_` family of functions from the purrr package are designed to let you easily iterate functions across lists, vectors, and dataframes. 
+
+```{r}
+library(purrr)
+#Dataframes are lists! 
+is.list(mtcars)
+mtcars[[1]]
+
+#map is exactly the same as lapply,. but easier to remember
+
+map(mtcars, mean_plus)
+
+#We probably want a vector, not a list, so lets use map_dbl
+map_dbl(mtcars, mean_plus)
+
+#Can also use the ~ to create an anonymous function
+
+map_dbl(mtcars, ~mean(.) + 1.732* sd(.))
+
+
+#Let's put this into it's own function for later
+
+mean_plus_df <- function(df){
+  map_dbl(mtcars, mean_plus)
+}
+
+mean_plus_df(mtcars)
+```
+
+
+Now let's say that I'm interested in the distribution of my new statistic, and so want to use a bootstrap technique to estimate the variance. There's a built in funciton `boot` which lets you do this, but it's also easy to implement using purrr. R lets you create a random dataset using the `sample` function, by just passing a numerica vector to the row parameter of a dataframe. 
+
+```{r}
+
+mtcars
+
+mtcars[c(1,2,2,2,2,2,23), ]
+
+df <- mtcars[sample(1:nrow(mtcars), 50, TRUE), ]
+
+mean_plus_df(df)
+```
+
+
+Let's alter our function to generate the random dataset, then take the mean_plus of each variable
+
+```{r}
+
+mean_plus_df <- function(df, fun = mean_plus){
+  df <- df[sample(1:nrow(df), 50, TRUE), ]
+  map_dbl(df, fun)
+}
+
+mean_plus_df(mtcars)
+mean_plus_df(mtcars)
+mean_plus_df(mtcars)
+mean_plus_df(mtcars)
+
+```
+
+Each time we call this function, we get a new random dataset, and a new set of statistics. So if we run this a bunch of times, we can get the distribution of those statistics. 
+
+```{r}
+#usually if you're not sure what you want, just use map
+distros <- map(1:1000, ~mean_plus_df(mtcars))
+
+```
+
+
+Lists are somewhat intimidating to work with because they're unstructured, but purrr gives you lots of tools to work with them. The most commonly used is to just return a element of a list by name
+
+```{r}
+mpg_dist <- map_dbl(distros, "mpg")
+library(ggplot2)
+
+qplot(mpg_dist) +
+  ggtitle("Bootstrapped mean_plus statistic")
+
+
+```
+
+Another thing you might want to do is transpose a list to make it easier to work with
+
+```{r}
+easy_distros <- transpose(distros)
+```
+
+The very best thing you can do when working with lists is to select one element of the list, get a function to do what you want on that one element, then use the map family of funcitons to apply it to each element of the list. 
+
+```{r}
+
+v <- easy_distros$mpg
+v
+class(v)
+
+v <- as.numeric(v)
+class(v)
+v
+
+out <- dplyr::data_frame(
+  mean = mean(v),
+  sd = sd(v), 
+  median = median((v))
+)
+
+
+summarize_boot <- function(v){
+  v <- as.numeric(v)
+  out <- dplyr::data_frame(
+    mean = mean(v),
+    sd = sd(v), 
+    median = median((v))
+  )
+  out
+}
+
+summarize_boot(v)
+boot_summary <- map_df(easy_distros, summarize_boot)
+
+```
+
+
+Sometimes you want to map across multiple lists of vectors. For instance in this case we might want the name of the variable that's summarized in addition to the summary statistics. 
+
+```{r}
+summarize_boot <- function(v, name){
+  v <- as.numeric(v)
+  out <- dplyr::data_frame(
+    mean = mean(v),
+    sd = sd(v), 
+    median = median((v)),
+    variable = name
+  )
+  out
+}
+
+map2(1:5, 1:5, paste)
+
+boot_summary <- map2_df(easy_distros, names(easy_distros), ~summarize_boot(.x, .y))
+
+```
+
+
